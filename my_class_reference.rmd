@@ -35,4 +35,20 @@ library(tidyverse)
 #Print will take a string and return it in the terminal 
 print("Hello World")
 ```
+```{r}
+#The library function loads an R library such as the tidyverse, providing access to the verbs and functions that library contains.
+library(tidyverse)
+```
 
+```{r}
+#The number function saves the number as a variable in the environment. 
+number <- 2 
+```
+
+```{r}
+#glimpse() function gives glimpse of data 
+```
+
+```{r}
+#head() function analyzes certain columns of data  
+```

@@ -1,7 +1,7 @@
 ---
 title: "pre_lab_01.Rmd"
-author: "Derek Willis"
-date: "2024-08-01"
+author: "Sandra Smith"
+date: "2025-02-04"
 output: html_document
 ---
 
@@ -30,7 +30,7 @@ The library function loads an R library such as the tidyverse, providing access 
 
 ### Task 1: The console
 
-**Task** In the console (look below), type 2+2 and hit enter. What does it return? Type your answer below. **Answer:**
+**Task** In the console (look below), type 2+2 and hit enter. What does it return? Type your answer below. **Answer:**4 
 
 ### Task 2: Variables
 
@@ -48,7 +48,7 @@ number * number
 
 What does it return? Type your answer below:
 
-**Answer:**
+**Answer:**4
 
 ### Task 3: Install packages
 
@@ -88,7 +88,7 @@ maryland_winred_contributions <- read_rds("pre_lab_01.rds")
 
 Once it loads, look at the environment window at right in RStudio for maryland_winred_contributions. It's next to a small blue circle with a white arrow in it. To the right of that, look at how many "obs" the dataset has ("obs" is short for observation, which is another way of saying rows or records). Look at how many variables it has (another way of saying columns or fields). Write the number of observations and variables below.
 
-**Answer**
+**Answer** 131395 obs. of 24 variables 
 
 ### Task 3: Glimpse data
 
@@ -98,7 +98,7 @@ Once it loads, look at the environment window at right in RStudio for maryland_w
 glimpse(maryland_winred_contributions)
 ```
 
-In the space below, write the data type for the "last_name" column and the "amount" columns (it's in light gray, offset by \< \>). Also offer your best guess as to what the "last_name" column and the "amount" column represent. **Answer**
+In the space below, write the data type for the "last_name" column and the "amount" columns (it's in light gray, offset by \< \>). Also offer your best guess as to what the "last_name" column and the "amount" column represent. **Answer**"last_name" has a data tupe of <chr> and could represent a person's last name. "amount" has a data type of <dbl> and could represent some form of money such as income. 
 
 ### Task 4: Examine data "head"
 
@@ -108,7 +108,7 @@ In the space below, write the data type for the "last_name" column and the "amou
 head(maryland_winred_contributions)
 ```
 
-In the space below, write the first and last name from the _second_ row of the data. **Answer**
+In the space below, write the first and last name from the _second_ row of the data. **Answer**Peggy Mukai 
 
 ### Task 5: Explore data with interactive dataframe
 
@@ -128,7 +128,7 @@ maryland_winred_contributions |>
 
 Describe what you think this code is doing below. What does the answer represent, compared to the results from `head()`?
 
-**Answer**
+**Answer**This code is grouping the data by date and displaying a summary of the contributions from each day. 
 
 ### Task 7: Adding arrange()
 
@@ -145,7 +145,7 @@ maryland_winred_contributions |>
 
 Compared to the previous codeblock, what has changed and how did that affect the result?
 
-**Answer**
+**Answer**This is different from the previous codeblock because it is now showing data displayed in a descending form, so the most contributions are shown first and the least are shown last. This makes it easier to find the most contributions. 
 
 ### Task 8: Multiple grouping
 
@@ -162,7 +162,7 @@ maryland_winred_contributions |>
 
 Compared to the previous codeblock, what has changed and how did that affect the result?
 
-**Answer**
+**Answer**This codeblock has grouped the data by the column memo_text and displayed the results in a descending form from greatest contributions to least contributions. We can now see the amount contributed. 
 
 ### Task 9
 
@@ -180,7 +180,7 @@ maryland_winred_contributions |>
 
 Compared to the previous codeblock, what has changed and how did that affect the result? 
 
-**Answer**
+**Answer** The total amount of data is now shown and is arranged from highest to lowest amounts contributed. This code is still grouped by memo_text. 
 
 ### Task 10: More descriptive statistics
 
@@ -200,7 +200,7 @@ maryland_winred_contributions |>
 
 Compared to the previous codeblock, what has changed and how did that affect the result? Glancing at the names, which of the top results from Maryland?
 
-**Answer**
+**Answer** We can now see the median and mean amounts contributed from each memo. It also shows data such as total amount contributed. After looking through the results, the top contributor is Trump National Committee JFC, Inc. 
 
 ### Task 11
 
@@ -220,4 +220,4 @@ maryland_winred_contributions |>
   arrange(desc(total_amount))
 ```
 
-Compared to the previous codeblock, what has changed and how did that affect the result? How is the data sorted? **Answer**
+Compared to the previous codeblock, what has changed and how did that affect the result? How is the data sorted? **Answer** Compared to the previous codeblock, the data is now showing the minimum and maximum amounts of contributions along with the cities in Maryland in which the contributions are from. The data is sorted from highest contribution to least contribution. 
