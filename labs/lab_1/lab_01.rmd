@@ -22,6 +22,7 @@ Remember to add any new verbs or concepts to your reference notebook!
 **Task** Import the Tidyverse. Write the code needed to load the library. To run the codeblock, hit the little green play button in the upper right corner of the gray area (the codeblock) below.
 
 ```{r}
+library(tidyverse)
 
 ```
 
@@ -32,7 +33,7 @@ In this lab, we will be recreating the first data story I ever did as a data jou
 **Task** Using the example from the pre_lab, write code to load the CSV file in the data file and assign it to a good variable name. This data is only charges for homeless people.
 
 ```{r}
-
+okaloosa_court_charges <- read_csv("data/okaloosa-court-charges.csv")
 ```
 
 ## Examine the data
@@ -41,10 +42,10 @@ In this lab, we will be recreating the first data story I ever did as a data jou
 
 **Q1** How many rows and columns does this dataframe have?
 
-**A1**
+**A1**There are 15,386 rows and 56 columns in this dataframe. 
 
 ```{r}
-
+glimpse(okaloosa_court_charges)
 ```
 
 ## Answer questions
@@ -54,7 +55,12 @@ In this lab, we will be recreating the first data story I ever did as a data jou
 **A2**
 
 ```{r}
-
+okaloosa_court_charges |>
+  group_by(court_statute) |>
+  summarise(
+    count_statutes=n()
+  )|>
+  arrange(desc(count_statutes))
 ```
 
 **Q3** What charges against homeless people have been charged the least?
@@ -62,18 +68,31 @@ In this lab, we will be recreating the first data story I ever did as a data jou
 **A3**
 
 ```{r}
+okaloosa_court_charges |>
+  group_by(court_statute) |>
+  summarise(
+    count_statute=n()
+  )|>
+  arrange(count_statute)
 
 ```
 
 **Q4** Why do you think there are so many charges identified in **A3** that are tied for the least common? Hint: You can't answer this question with code.
 
-**A4**
+**A4**There are so many charges identified that are tied for the least common because there is a chance these are not actually brought against a person, meaning they were arrested for these charges but not prosecuted for them. There is also a possibility that these charges don't happen as often as others. 
+
 
 **Q5** Which prosecutor has prosecuted the most charges against homeless people? Is the top prosecutor related to any famous Floridians?
 
 **A5**
 
 ```{r}
+okaloosa_court_charges |>
+  group_by(prosecutor) |>
+  summarize(
+    prosecutor_charge_count=n()
+  ) |>
+arrange(desc(prosecutor_charge_count))
 
 ```
 
@@ -83,6 +102,12 @@ In this lab, we will be recreating the first data story I ever did as a data jou
 **A6**
 
 ```{r}
+okaloosa_court_charges |>
+  group_by(judge) |>
+  summarise(
+    cases=n_distinct(case_number)
+  ) |>
+  arrange(desc(cases))
 
 ```
 
@@ -91,6 +116,14 @@ In this lab, we will be recreating the first data story I ever did as a data jou
 **A7**
 
 ```{r}
+okaloosa_court_charges |>
+  group_by(prosecutor) |>
+  summarize(
+    count_prosecutor_charge_count=n(),
+    max_defendant= max(defendant)
+  ) |>
+  arrange(desc(count_prosecutor_charge_count))
+  
 
 ```
 
@@ -99,9 +132,20 @@ In this lab, we will be recreating the first data story I ever did as a data jou
 **A8**
 
 ```{r}
-
+okaloosa_court_charges |>
+  group_by(defendant) |>
+  summarize(
+    first_name=n(),
+    last_name=n(),
+    arrest_charge=n(),
+    count_statutes=n(),
+    total_assessed=sum(total_assessed),
+    mean_balance=mean(balance),
+    median_balance=median(balance)
+  ) |>
+  arrange(desc(count_statutes))
 ```
 
 **Q9** Please describe a short reporting plan for how you would use the data you have generated in **A8** to report on the criminal justice system in Okaloosa County, Florida. Who are the people we should talk to? What more should we do with our data analysis to be certain we know what the story is?
 
-**A9**
+**A9**I would focus on speaking with Richard Scott Chancey, the homeless person with the most charges. I would also speak with the prosecutor who handeled most of the charges. This could help in analyzing the criminal justice system. I think it'd be interesting to do a story that also includes the years in which the crimes by homeless people occurred and if there was an increase or decrease in certain crimes. I would also want to look into the amount of fines compared to the severity of the crime in the county. Overall, it would be interesting to analyze the people committing the crimes along with those who work in the system. 
