@@ -59,7 +59,7 @@ primary_24 |>
 
 Describe what you think this code is doing below.
 
-**Answer**
+**Answer** This code is selecting certain columns to keep, including office_name, office_district, candidate_name, party, county_name, election_day, and votes. Then, the mutate function is combining columns (election_day and votes) to create percent_election_day which represents the proportion of votes casted on election day. 
 
 ### Task 5: Better percentage calculation
 
@@ -90,7 +90,7 @@ primary_24 |>
 
 How did the results change from the previous task, and why?
 
-**Answer**
+**Answer**The results changed because the column is now ordered by descending numbers, meaning to highest amount of votes casted on election day are shown at the top and the lowest amount of votes casted on election day are shown at the bottom. These are also shown as percentages instead of decimals. 
 
 ### Task 7: Mutate with ordering, part 2
 
@@ -108,7 +108,7 @@ primary_24 |>
 
 Is this a more interesting or useful answer? Why?
 
-**Answer**
+**Answer**I think ordering the information in a descending way is more interesting. You can see the counties that had 100% of votes casted for each candidate compared to only seeing how there is zero percent of votes casted. 
 
 ### Task 8: Standardize existing data using mutate
 
@@ -138,7 +138,7 @@ standardized_maryland_cities <- maryland_cities |>
 
 **Task** Search the Internet for tidyverse functions similar to str_to_upper. Name at least two and describe what they do.
 
-**Answer**
+**Answer**One tidyverse function similar to str_to_upper is str_to_sentence. This function converts to sentences with only the first letter being capitalized. Another function similar to str_to_upper is str_to_title which converts to title, where each word had the first letter capitalized. (Information found from https://stringr.tidyverse.org/reference/case.html)
 
 There are lots of potential uses for standardization - addresses, zip codes, anything that can be misspelled or abbreviated.
 
@@ -166,7 +166,7 @@ Now that we've gotten a look, we can use `case_when` to give our new category co
 
 **Task** Run the following code and look at the output. Then write a sentence or two describing what you think the mutate statement is doing step by step.
 
-**Answer**
+**Answer**The code is creating a new column, amount_category, in the dataset and the case_when function is assigning each variable with an amount. For example, if an amount is <100, it is labeled as Less than $100. It is filtering out the data and organizing it based on amount. 
 
 ```{r}
 maryland_winred_categories <- maryland_winred_contributions |>
@@ -196,7 +196,7 @@ maryland_winred_categories |>
 ```
 What's the largest category in terms of dollar amount?
 
-**Answer** 
+**Answer** Less than 100 at $1716338.60.
 
 Mutate is there to make your data more useful and to make it easier for you to ask more and better questions of it.
 
@@ -244,7 +244,7 @@ And now we only have five columns of data for whatever analysis we might want to
 
 Notice that we made a new variable to hold the result. Why is that important?
 
-**Answer**
+**Answer**This simplifies the data and makes it easier to understand and analyze. 
 
 ### Task 12: Combining filters
 
@@ -306,7 +306,7 @@ maryland_expenses <- maryland_expenses |> mutate(expenditure_date=mdy(expenditur
 head(maryland_expenses)
 ```
 
-**Answer:**
+**Answer:**Expidenture_date is now characterized as a <date> instead of <chr>. This means that R recognizes it as a date and formats each row in a consistent way. 
 
 Lubridate has functions for basically any type of character date format: mdy, ymd, even datetimes like ymd_hms.
 
@@ -342,4 +342,4 @@ So the month of June 2022 had the most expenditures by far in this data. We'll b
 
 Describe the values in the new `month` column - what do you think the data is showing here?
 
-**Answer**
+**Answer**The values are showing the total amount of expenditures grouped by month. It is sorted by descending so we see that June 2022 had the highest amount of expenditures. 
