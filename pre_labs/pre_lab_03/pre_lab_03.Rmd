@@ -33,7 +33,9 @@ library(tidyverse)
 
 ### Task 2: Load data
 
-**Task** Load some precinct-level election results data from Texas for the 2020 general election by running the following code. We'll use the guess_max() function as an argument to use the first 10 rows to set the data type. What does the first line of the red Warning message that prints out when you load the data say? Answer below. **Answer**
+**Task** Load some precinct-level election results data from Texas for the 2020 general election by running the following code. We'll use the guess_max() function as an argument to use the first 10 rows to set the data type. What does the first line of the red Warning message that prints out when you load the data say? Answer below. **Answer** 
+
+The warning message says "One or more parsing issues, call 'problems()' on your data frame for details, e.g.: dat<-vroom(...)". 
 
 ```{r}
 texas_precinct_20 <- read_csv("data/tx_precinct_2020.csv", guess_max=10)
@@ -42,6 +44,8 @@ texas_precinct_20 <- read_csv("data/tx_precinct_2020.csv", guess_max=10)
 ### Task 3: Check for problems on load
 
 **Task** Check for problems that occurred when loading the Texas precinct results by running the following code. How many problems were there, as shown by the number of rows in the output table showing errors? What do you think the problem is that R is describing? Answer below. **Answer**
+
+There are 1,640 errors. The problem that R is describing is that it did not expect numerical values, instead it expected characters or words such as true or false. 
 
 ```{r}
 
@@ -53,6 +57,8 @@ problems(texas_precinct_20)
 
 **Task** Run the following codeblock to reload the data, using every row to set the data types. Does it show any parsing errors when you run? Answer below **Answer**
 
+No, it does not show any parsing errors when the code is run. 
+
 ```{r}
 texas_precinct_20 <- read_csv("data/tx_precinct_2020.csv", guess_max=476915)
 ```
@@ -60,6 +66,8 @@ texas_precinct_20 <- read_csv("data/tx_precinct_2020.csv", guess_max=476915)
 ### Task 5: Examine the data with glimpse
 
 **Task** Run the following codeblock to glimpse the data. What data type is the "district" field? What data type is the "precinct" field? What data type is the "mail" column? Answer below. **Answer**
+
+The district field is <dbl> or double. The precinct field is <chr> or character, so the column can hold text inputs instead of numerical values. The mail column is also <dbL> or double. 
 
 ```{r}
 glimpse(texas_precinct_20)
@@ -96,6 +104,8 @@ glimpse(texas_precinct_20)
 ### Task 7: Examine the franchise column for missing values.
 
 **Task** Run the following codeblock to group by mail votes, count the number of precinct results, then sort from highest to lowest on count. How many results are there where mail is NA? What's the implication there? Answer below. **Answer**:
+
+There are 402345 results when mail is NA. This implies that there are missing values. 
 
 ```{r}
 
@@ -136,6 +146,8 @@ yadkin_voters <- read_csv("data/yadkin_voters.csv")
 
 **Task** Run the following codeblock to create a new column called "registration_month" that extracts the month and year from the "registr_dt" column. Group by the new "registration_month" column, count, and sort by "registration_month". How many registrations are there in the data for January 1900? What do you think the first 20 results suggests? Answer below. **Answer**
 
+There are 12 registrations from January 1900. The first 20 results could suggest that there's either data entry errors and it shows that there is a spike in 1966 registrations. 
+
 ```{r}
 yadkin_voters |> 
   mutate(registration_month = floor_date(registr_dt, "month")) |>
@@ -149,6 +161,8 @@ yadkin_voters |>
 ### Task 14: Check for suspicious outliers
 
 **Task** Run the following codeblock to find the number of registered voters grouped by voter status reason, using summarise() to count. Are any of these worthy of exploration to you? Why or why not? Answer below. **Answer**
+
+Yes these are worthy of exploration. I think Legacy Data is interesting to me, I'm not sure what that means and the number of these is high. Also, the number of deceased registered voters is high, along with Confirmation not Returned - are the addresses not being updated as frenquently as they should within these results?
 
 ```{r}
 
@@ -182,6 +196,8 @@ library(janitor)
 
 **Answer**
 
+There are 14 rows in this demonstration data set. 
+
 ```{r}
 conowingo <- read_rds("data/conowingo.rds")
 ```
@@ -189,6 +205,8 @@ conowingo <- read_rds("data/conowingo.rds")
 ### Task 4: Examine the data with glimpse
 
 **Task** Run the following codeblock to glimpse the data. What data type is the "amount" field? Answer below. **Answer**
+
+The amount field is <chr> or character. 
 
 ```{r}
 glimpse(conowingo)
@@ -200,7 +218,7 @@ And let's examine the full data set.
 
 **Task** Run the following codeblock to examine the data. Name three problems the book chapter says exist in this data set that could prevent us from answering questions?
 
-**Answer**
+**Answer** The zip code column consists of both 5 digit zip codes and nine digit zip codes, the column names aren't clean (ex. 1_linenumber) and shouldn't start with numbers, and the amount column is a <chr> data type even though there are numerical values as results. 
 
 ```{r}
 conowingo
@@ -210,7 +228,7 @@ conowingo
 
 **Task** Run the following codeblock to use the `clean_names()` function from janitor to standardize column names. How does the function change the name of the column "1_linenumber"? Answer below. Add a description of what this code does to your reference notebook.
 
-**Answer**
+**Answer**The function changes the name to "x1_linenumber". 
 
 ```{r}
 # cleaning function
@@ -236,7 +254,9 @@ cleaned_conowingo
 
 ### Task 8: Try summarizing the amount column
 
-**Task** Run the following codeblock to attempt to add up the amount of all contributions. What does the error say when you run this code? What do you think the error means? Answer below. **Answer**
+**Task** Run the following codeblock to attempt to add up the amount of all contributions. What does the error say when you run this code? What do you think the error means? Answer below. 
+
+**Answer** The error says "Error in summarise(): in argument: 'total_amount = sum(amount)'. caused by error in 'sum()' invalid 'type' (character) of argument. This error means that the amount column's data type is <chr> even though the inputs are numerical. It is reading the data as character strings. 
 
 ```{r}
 # cleaning function
@@ -251,7 +271,9 @@ total_conowingo
 
 ### Task 9: Change data type for amount
 
-**Task** Run the following codeblock to attempt to change the datatype for the amount field to a number. What is the new data type (three letter code) for amount? Answer below. **Answer**
+**Task** Run the following codeblock to attempt to change the datatype for the amount field to a number. What is the new data type (three letter code) for amount? Answer below. 
+
+**Answer** <dbl>
 
 ```{r}
 # cleaning function
@@ -269,6 +291,7 @@ cleaned_conowingo
 ### Task 10: Try again to summarize the amount column
 
 **Task** Run the following codeblock to add up the amount of all contributions in this data. What is the total? Answer below. **Answer**
+The total is 226. 
 
 ```{r}
 # cleaning function
@@ -283,7 +306,9 @@ total_conowingo
 
 ### Task 11: Check for duplicate rows
 
-**Task** Run the following codeblock to check for duplicate rows using get_dupes(). How many are there? What is the donor name? Answer below. **Answer**
+**Task** Run the following codeblock to check for duplicate rows using get_dupes(). How many are there? What is the donor name? Answer below. 
+
+**Answer** There is one duplicate rows. The donor name is Derrick Hamilton. 
 
 ```{r}
 cleaned_conowingo |> 
@@ -292,7 +317,9 @@ cleaned_conowingo |>
 
 ### Task 12: Check for duplicate rows
 
-**Task** Run the following codeblock to use distinct() to get rid of duplicate rows. How many rows does the new dataframe have? Answer below. Add a description of what this code does to your reference notebook. **Answer**
+**Task** Run the following codeblock to use distinct() to get rid of duplicate rows. How many rows does the new dataframe have? Answer below. Add a description of what this code does to your reference notebook.
+
+**Answer**There are 13 rows in the new dataframe. 
 
 ```{r}
 # cleaning function
@@ -310,7 +337,9 @@ cleaned_conowingo
 
 ### Task 13: Clean up ZIP code
 
-**Task** Run the following codeblock to use str_sub() to convert the ZIP codes that have nine digits to five digits, standardizing the field. Look at the difference in the result - what changed? **Answer**
+**Task** Run the following codeblock to use str_sub() to convert the ZIP codes that have nine digits to five digits, standardizing the field. Look at the difference in the result - what changed? 
+
+**Answer**The zip codes are now all five digits. 
 
 ```{r}
 # cleaning function
@@ -331,6 +360,8 @@ cleaned_conowingo
 
 **Task** Run the following codeblock to use str_tot_title() to standarize capitalization in the "city" field. How many mispellings of Conowingo remain after running this code? Answer below. Add a description of what this code does to your reference notebook.
 
+**Answer**There are two misspellings of Conowingo. 
+
 ```{r}
 # cleaning function
 cleaned_conowingo <- conowingo |>
@@ -349,7 +380,9 @@ cleaned_conowingo
 
 ### Task 15: Clean up city field more with case_when()
 
-**Task** Run the following codeblock to use case_when() to fix misspellings of Conowingo in the "city" field. How many mispellings of Conowingo remain after running this code? Answer below. **Answer**
+**Task** Run the following codeblock to use case_when() to fix misspellings of Conowingo in the "city" field. How many mispellings of Conowingo remain after running this code? Answer below. 
+
+**Answer**There is one misspelling after running this codeblock.
 
 ```{r}
 # cleaning function
@@ -372,7 +405,9 @@ cleaned_conowingo
 
 ### Task 16: Clean up city field more with case_when()
 
-**Task** Run the following codeblock to use case_when() to fix misspellings of Conowingo in the "city" field using both the exact match method and the str_detect() method. How many mispellings of Conowingo remain after running this code? Answer below. Add a description of what this code does to your reference notebook. **Answer**
+**Task** Run the following codeblock to use case_when() to fix misspellings of Conowingo in the "city" field using both the exact match method and the str_detect() method. How many mispellings of Conowingo remain after running this code? Answer below. Add a description of what this code does to your reference notebook. 
+
+**Answer** There are no more misspellings of Conowingo after running this codeblock. 
 
 ```{r}
 # cleaning function
