@@ -26,7 +26,8 @@ library(janitor)
 
 ```{r}
 # Load MD slice of FEC House candidate contribution data
-md_contribs <- read_rds("data/lab_03.rds")
+md_contribs <- read_rds("data/lab_03.rds") |>
+  clean_names() 
 ```
 
 ## Fix header issues
@@ -34,7 +35,8 @@ md_contribs <- read_rds("data/lab_03.rds")
 You'll need to fix one issue with the column names using janitor. Write a code block to do that, making sure that you save the results to the same dataframe.
 
 ```{r}
-
+md_contribs <- md_contribs 
+glimpse(md_contribs)
 ```
 
 
@@ -47,6 +49,20 @@ Note: To answer this question, you'll need to see every variation of the "contri
 A1:
 
 ```{r}
+top_contributions <- md_contribs |>
+  group_by(contributor_city) |>
+  summarize(total_contributions = n()) |>
+  arrange(desc(total_contributions)) 
+
+
+cleaned_md_contribs <- md_contribs |>
+  mutate(contributor_city = case_when(
+    contributor_city == "ANAPOLIS" ~ "Annapolis",
+    contributor_city == "BALRIMORE" ~ "Baltimore",
+    contributor_city == "POTAMIC"~ "Potomac", 
+    contributor_city == "Silver Springs"~ "Silver Spring",
+    TRUE ~ contributor_city
+  ))
 
 ```
 
@@ -57,13 +73,25 @@ Where is that zip code and what kind of area is it, demographically? Which commi
 A2:
 
 ```{r}
+cleaned_md_contribs <- md_contribs |> 
+  clean_names() |>
+  mutate(contributor_zip == as.character(contributor_zip)) |> 
+  mutate(contributor_zip = str_sub(contributor_zip,start=1L, end=5L))
 
+cleaned_md_contribs |>
+  group_by(contributor_zip) |>
+  summarize(count=n()) |>
+  arrange(desc(count))
 ```
 
 Q3: Let's look at top individual donors. Write code to generate a list of top donors using name and city, adding up the total amount of contributions. What does the original data say about the top two donors - who are they and what do they do? Do you see anything in the list of top 10 donors that would make you uncertain about the accuracy of these results?
 
-A3:
+A3:Used chatgpt to help for this question 
 
 ```{r}
+md_contribs |>
+  group_by(contributor_name, contributor_city) |>
+  summarize(total_contributions = sum(contribution_receipt_amount, na.rm= TRUE)) |>
+  arrange(desc(total_contributions))
 
 ```
