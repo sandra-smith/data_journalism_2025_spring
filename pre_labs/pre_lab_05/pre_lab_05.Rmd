@@ -39,6 +39,8 @@ Let's say that we have Maryland county voter registration data from five differe
 
 **Task** Load the five CSV files. Do they have the same column structure? **Answer**
 
+Yes, these five CSV files have the same column structure. 
+
 ```{r}
 county_voters_2016 <- read_csv("data/county_voters_2016.csv")
 county_voters_2018 <- read_csv("data/county_voters_2018.csv")
@@ -89,6 +91,8 @@ We can do this join multiple ways and get a similar result. We can put the popul
 
 **Task** Run the following code to join Maryland population data and the 2020 voter registration data together using the common column county as the key. How many rows are there now? How many *should* there be? **Answer**
 
+There are 24 rows now. There should be 24 rows after joining the data together. 
+
 ```{r}
 # with nrow included to show row total
 maryland_population |> left_join(county_voters_2020, join_by(COUNTY)) |> nrow()
@@ -109,7 +113,9 @@ When the join column is obvious - it's the same name in both dataframes - R will
 
 ### Task 7: Assign Joined Data to New Dataframe
 
-**Task** Create a new dataframe with population and voter data joined together. What does the output message below say about the join? **Answer**
+**Task** Create a new dataframe with population and voter data joined together. What does the output message below say about the join? **Answer** 
+
+The output message says the data is joined with 'by = join_by(COUNTY).' This means that the code below used the county column to match the data and perform a join. 
 
 ```{r}
 maryland_population_with_voters <- maryland_population |> left_join(county_voters_2020)
@@ -145,6 +151,8 @@ We can get this by using mutate and arrange:
 
 **Task** Using mutate, let's find the county with the highest 18+ Black population as a percentage of all population 18 and over and also the percentage of Democrats in that county. Put your answers below. **Answer**
 
+The county with the highest 18+ Black population is Prince George's at 60.9%. Prince George's also has a 78.3% of Democrats in the county. 
+
 ```{r}
 maryland_population_with_voters_and_demographics |>
   mutate(pct_black_18_plus = (pop_black/pop_18_over)*100, pct_dems = (DEM/TOTAL)*100) |> 
@@ -160,6 +168,8 @@ Let’s change that to look at Asian population:
 
 **Task** Now let's find the county with the highest 18+ Asian population as a percentage of all population 18 and over and also the percentage of Democrats in that county. How do these results compare to the previous task? Put your answers below. **Answer**
 
+The county with the highest 18+ Asian population is Howard at 19.4%. The population is 52.4% Democrat. The results from both tasks show a higher democratic population than populations of Black or Asian individuals. There is also a large difference in the percentages of Black and Asian individuals in the two counties, with 19% compared to 60%. 
+
 ```{r}
 maryland_population_with_voters_and_demographics |>
   mutate(pct_asian_18_plus = (pop_asian/pop_18_over)*100, pct_dems = (DEM/TOTAL)*100) |> 
@@ -173,6 +183,8 @@ Sometimes joins look like they should work but don't. Often this is due to the t
 
 **Task** Run the following code to load the Zip Code Tabulation Area data for Maryland. What's the datatype of the ZCTA5N? column? **Answer**
 
+The ZCTA5N column is <dbl>. 
+
 ```{r}
 maryland_zcta <- read_csv('data/maryland_zcta.csv')
 glimpse(maryland_zcta)
@@ -182,8 +194,12 @@ The column we're interested in, ZCTA5N, is a <dbl> column - it's a number. We wa
 
 **Task** Run the following code to change the datatype of ZCTA5N from numeric to character. What's the datatype of ZCTA5N now? **Answer**
 
+The ZCTA5N column is now <chr>. 
+
 ```{r}
 maryland_zcta <- maryland_zcta |> mutate(across(ZCTA5N, as.character))
+
+maryland_zcta
 ```
 
 Now we can join this dataframe to other zip code data where the zip code column is text, not numbers.
