@@ -46,6 +46,11 @@ You'll need to load one data set, a CSV file of campaign expenditures located in
 ```{r}
 # Load the Maryland expenditures data table
 
+md_senate_expenses <- read_csv("data/md_senate_expenses.csv")
+
+md_senate_expenses
+
+
 ```
 
 ## Answer questions
@@ -62,29 +67,73 @@ Then, using that `purpose_clean` column, write code to find the largest amounts 
 
 ```{r}
 
+md_senate_expenses_clean <- read_csv("data/md_senate_expenses_clean.csv") |>
+  clean_names()
+
+md_senate_expenses_clean
+
+top_spending <- md_senate_expenses_clean |>
+  group_by(candidate, purpose_clean) |>
+  summarize(total_spent = sum(amount, na.rm = TRUE)) |>
+  arrange(desc(total_spent))
+
+top_candidate <- top_spending |>
+  arrange(candidate,desc(total_spent)) |>
+  group_by(candidate)
+  
+              
 ```
 
 **Q2.** Let's do some research on the top purposes from A1. Feel free to search the Web to understand those terms better if need be, and then write a description comparing and contrasting the two campaigns' largest categories of spending.
 
-**A2.**
+**A2.** Alsobrooks spent the most on media advertising while Hogan spent the most on paid advertisements. Both focus on the public and gaining support through recognition and media spotlights. Since Hogan already has a well-established career in Maryland politics, I think that's why he was less likely to spend on media advertising compared to Alsobrooks. The main difference between these two categories is that media advertisements refers to using media channels to reach a wide variety of audiences while ad buy refers to purchasing specific advertising space on media outlets. 
 
 **Q3.** Pick one of the top categories for each campaign and write code that shows how that spending has changed over time, if at all. You'll need to use lubridate for this. Write a couple of sentences describing that pattern.
 
-**A3.**
+**A3.** Alsobrooks spent the least amount in March of 2023 and continued to increase her spending since. Her highest month was April 2024. Hogan's highest month was May 2024 and lowest was in March of 2023. Both consistently grew after then.   
 
 ```{r}
 
+alsobrooks_top <- md_senate_expenses_clean |>
+  filter(candidate == "Alsobrooks" & purpose_clean == "MEDIA ADVERTISING") |>
+  group_by(date) |>
+  summarise(total_spent = sum(amount)) |>
+  arrange(desc(total_spent))
+
+hogan_top <- md_senate_expenses_clean |>
+  filter(candidate == "Hogan" & purpose_clean == "AD BUY") |>
+  group_by(date)|>
+  summarise(total_spent = sum(amount)) |>
+  arrange(desc(total_spent))
+
+alsobrooks_top
+hogan_top
 
 ```
 
 **Q4.** Which committee has the larger payroll or salary spending so far? How many unique recipients of payroll/staff spending are there for each candidate?
 
-**A4.**
+**A4.**I used chatGPT to help with this one - specifically for the payroll words section.
+
+Alsobrooks has the largest payroll/salary spending. There are 24 unique recipients for Alsobrooks and 2 for Hogan. 
 
 ```{r}
+payroll_words <- c("PAYROLL TAXES", "PAYROLL FEE
+", "SALARY", "STAFFING - SEE MEMO", "CONTRACTOR FIELD STAFF") 
 
+payroll_data <- md_senate_expenses_clean |>
+  filter(purpose_clean %in% payroll_words)
+
+payroll_summary <- payroll_data |>
+  group_by(candidate) |>
+  summarize(total_payroll = sum(amount,na.rm=TRUE), 
+            unique_recipients = n_distinct(last_name))
+
+payroll_summary
+  
 ```
 
 **Q5** What's the most interesting story idea you've found in this data?
 
 **A5**
+One thing I've found interesting is the large gap in payroll spending between Alsobrooks and Hogan. I would like to know why Hogan does not spend as much on payroll, is it because of different priorities, a smaller campaign, etc.? 
