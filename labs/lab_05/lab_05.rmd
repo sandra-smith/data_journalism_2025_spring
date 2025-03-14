@@ -13,6 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 # load the tidyverse
+library(tidyverse)
 ```
 
 ## Getting Started
@@ -25,12 +26,20 @@ First, load two CSV contribution files in the `data` folder, one each for donati
 
 ```{r}
 # load the Harris contribution data files and combine them
+
+harris_july <- read.csv("data/july_harris.csv")
+harris_august <- read.csv("data/august_harris.csv")
+harris_combined <- bind_rows(list(harris_july, harris_august))
+View(harris_combined)
+
 ```
 
 Next, let's read in the new voters (people who registered in 2024):
 
 ```{r}
 # load the new voters data
+
+new_voters <- read.csv("data/new_voters.csv")
 ```
 
 Next join the Harris donations to the voter data. Remember, people's names are common, __so you'll want to use name columns and address information__. You'll need to figure out which columns to use from both dataframes. The new_voters data has both a single Address column and various parts of the address, such as HouseNumber. Make a plan for picking your join columns - try out some combinations - and save the results to a new dataframe.
@@ -38,19 +47,32 @@ Next join the Harris donations to the voter data. Remember, people's names are c
 ```{r}
 # join the combined Harris file to the new voters
 # you will need to determine what columns to use
+joined_voters <- new_voters |>
+  left_join(harris_combined, 
+            join_by(FirstName, LastName,Address==address_one))
 ```
 
 ## Answer questions
 
 Q1. Explain why you used the columns you did to make the join, and why that result is better than other ways you tried. Are there any problems with the join you made, such as the possibility of false positives?
 
-A1. 
+A1. I used first name, last name and address to join the columns because it was the most effective. I kept getting an error message that stated I had many-to-many relationships between x and y when attempting to join other columns. 
 
 Q2. Based on your join, how many donations to Harris have come from people who registered this year? How many unique people does that represent, and which donors have given the largest _number_ of donations since July 20? 
 
 A2. 
 
 ```{r}
+
+joined_voters |>
+  filter(StateRegistrationDate > as.Date("2024-07-20")) |>
+  group_by(FirstName,LastName, city) |>
+  summarize (count=n()) 
+
+new_voters_filtered <- new_voters |>
+  filter(StateRegistrationDate >= as.Date("2024-01-01"))
+
+
 ```
 
 Q3. What are the party and gender breakdowns of those donors? How many donations has Harris gotten from non-Democrats?
@@ -59,8 +81,29 @@ A3.
 
 ```{r}
 
+Party <- joined_voters |>
+  group_by(Party) |>
+  summarize(count=n())
+
+Gender <- joined_voters |>
+  group_by(Gender) |>
+  summarize(count=n())
+
+party_and_gender <- joined_voters |>
+  group_by(Party,Gender) |>
+  summarize(
+    count=n()
+  )
 ```
 
 Q4. Choose your own adventure: I want you to come up with a question you could ask of one of the dataframes we've created for this lab. It could involve just the new voters, or the donors or the joined dataframe, but it cannot be a variation of a previous question (so, for example, you can't ask, "How many Republicans have given to Harris"). First write the question and then try to answer it by writing code. If you're not sure of the exact code, try googling (or ask me for advice) but, at a minimum, describe what you think you'd have to do to answer it and what the results would look like. That can help.
 
-A4:
+A4:What occupation was most common for those who donated to Harris? 
+
+Unemployed, retired, consultant are most common. 
+```{r}
+occupation <- joined_voters |>
+  group_by(employer,occupation ) |>
+  summarize(count=n()) |>
+  arrange(desc(occupation))
+```
