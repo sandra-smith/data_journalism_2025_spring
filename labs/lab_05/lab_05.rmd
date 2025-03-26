@@ -48,8 +48,8 @@ Next join the Harris donations to the voter data. Remember, people's names are c
 # join the combined Harris file to the new voters
 # you will need to determine what columns to use
 joined_voters <- new_voters |>
-  left_join(harris_combined, 
-            join_by(FirstName, LastName,Address==address_one))
+  inner_join(harris_combined, 
+            join_by(FirstName==first_name, LastName ==last_name,Address==address_one))
 ```
 
 ## Answer questions
@@ -69,8 +69,10 @@ joined_voters |>
   group_by(FirstName,LastName, city) |>
   summarize (count=n()) 
 
+
 new_voters_filtered <- new_voters |>
   filter(StateRegistrationDate >= as.Date("2024-01-01"))
+
 
 
 ```
