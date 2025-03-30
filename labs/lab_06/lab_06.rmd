@@ -21,6 +21,9 @@ options(scipen=999)
 
 # Load the tidyverse and any other libraries you'll need
 
+library(tidyverse)
+library(janitor)
+
 ```
 
 ## Get Our PDF
@@ -50,21 +53,32 @@ You will need to read in and clean up the data so that it can be used for analys
 
 ```{r}
 # Party registrations
+new_party_registrations2024 <- read_csv("new_party_registrations.csv", col_names=c("METHOD", "DEM", "REP", "NLM", "LIB", "GRN", "UNAF", "OTH", "TOTAL", "DUPS") )
 
+glimpse(new_party_registrations2024)
 ```
 
 ```{r}
 # Removals
+
+removals2024 <- read_csv("removals.csv")
+
+colnames(removals2024) <- c("SUMMARY", "DEM", "REP", "NLM", "LIB", "GRN", "UNAF", "OTH", "TOTAL")
 
 ```
 
 ```{r}
 # Changes
 
+registration_changes2024 <- read_csv("registration_changes.csv", col_names = c("COUNTY", "ADDRESS_CHANGES", "NAME_CHANGES", "DEM", "REP", "NLM", "LIB", "GRN", "UNAF", "OTH", "TOTAL"))
+
 ```
 
 ```{r}
 # Current registrations
+
+current_registrations2024 <- read_csv("current_registrations.csv", col_names=c("DEM", "REP", "NLM", "LIB","GRN", "UNAF","OTH", "TOTAL", "CONFMAILING", "INACTIVE"))
+
 
 ```
 
@@ -77,20 +91,28 @@ To answer the following questions, you'll need to calculate percentages and do o
 ```{r}
 # Party registrations
 
+new_party_registrations2022 <- read_csv("new_party_registrations2.csv", col_names=c("METHOD", "DEM", "REP", "NLM", "LIB", "GRN", "UNAF", "OTH", "TOTAL", "DUPS") )
+
 ```
 
 ```{r}
 # Removals
+
+removals2022 <- read_csv("removals2.csv", col_names = c("SUMMARY", "DEM", "REP", "NLM", "LIB", "GRN", "UNAF", "OTH", "TOTAL"))
 
 ```
 
 ```{r}
 # Changes
 
+registration_changes2022 <- read_csv("registration_changes2.csv", col_names = c("COUNTY", "ADDRESS_CHANGES", "NAME_CHANGES", "DEM", "REP", "NLM", "LIB", "GRN", "UNAF", "OTH", "TOTAL"))
+
 ```
 
 ```{r}
 # Current registrations
+
+current_registrations2022 <- read_csv("current_registrations2.csv", col_names = c("DEM", "REP", "NLM", "LIB", "GRN", "UNAF", "OTH", "TOTAL", "CONFMAILING", "INACTIVE"))
 
 ```
 
@@ -98,17 +120,43 @@ To answer the following questions, you'll need to calculate percentages and do o
 
 Q1. Calculate the percentage of registered Democrats, Republicans and unaffiliated voters for the entire state in September 2024 and September 2022, and then calculate the percentage change for those three party categories (the formula for percentage change is easy to remember: (New-Old)/Old). How would you describe the changes in these partisan categories in a story? What's the most interesting thing about these changes that would be the lede of that story?
 
-A1.
+A1. Democratic registration dropped by 3.03% from 2022-2024, Republican registration also dropped by 0.62% and unaffiliated voter registration increased by 7.98%. The most interesting change is the rise in unaffiliated voter registration. This would be the best lede of the story. (I asked chatgpt for help on the percent change section.) 
 
 ```{r}
+
+sept_2022 <- current_registrations2022 |>
+  mutate(dem_percent = DEM / TOTAL * 100,
+         rep_percent = REP / TOTAL * 100,
+         unaff_percent = UNAF / TOTAL * 100)
+
+sept_2024 <- current_registrations2024 |>
+  mutate(dem_percent = DEM / TOTAL * 100,
+         rep_percent = REP / TOTAL * 100,
+         unaff_percent = UNAF / TOTAL * 100)
+
+percent_change <- sept_2024 |>
+  mutate(dem_change = (dem_percent - sept_2022$dem_percent) / sept_2022$dem_percent * 100,
+         rep_change = (rep_percent - sept_2022$rep_percent) / sept_2022$rep_percent * 100,
+         unaff_change = (unaff_percent- sept_2022$unaff_percent) / sept_2022$unaff_percent * 100)
 
 ```
 
 Q2. Among the Maryland jurisdictions with the most registered voters, which one had the biggest percentage increase in unaffiliated voters between 2022 and 2024? How did that county vote for governor in 2022 and for president in 2020? Contrast the partisan percentages of that county with the county that had the eighth-largest percentage increase in unaffiliated voters. You should display information from the data that shows the counties with the largest percentage increase first.
 
-A2.
+A2. Wicomico county had the largest percentage increase in unaffiliated voters. There was an increase of 70 percent of unaffiliated voters in Wicomico county, and the eighth-largest percentage increase was Caroll county with a 43 percentage increase. 
 
 ```{r}
+
+registration_changes2024 <- registration_changes2024 %>% mutate(unaff_percent2024 = (UNAF / TOTAL) * 100)
+registration_changes2022 <- registration_changes2022 %>% mutate(unaff_percent2022 = (UNAF / TOTAL) * 100)
+
+merged_changes <- left_join(registration_changes2022, registration_changes2024, by = "COUNTY")
+
+merged_changes <- merged_changes |>
+  mutate(unaff_percent_change = ((unaff_percent2024 - unaff_percent2022) / unaff_percent2022) * 100) |>
+  arrange(desc(unaff_percent_change))
+
+
 
 ```
 
@@ -116,20 +164,59 @@ Q3. Do the party percentages of new registrants (% Dem, % Rep, % Unaffiliated) f
 
 In other words, did new registrants mirror the overall partisan composition of the electorate, or were they different? Do any of the methods of registration vary significantly from the overall partisan pattern? Which method is worthy of further exploration?
 
-A3.
+A3. No they did not mirror overall partisan composition of the electorate, more new voters registered as unaffiliated instead of democrats or republicans. Most registrations occurred at the motor vehicle administration in 2022 and 2024. This would be the most interesting trend to further analyze, along with online registration trends over the years. 
+I used Chatgpt to help with this question, specifically to see how to properly use the summarize function. 
 
 ```{r}
 
+summary2024 <- current_registrations2024 |>
+  summarize(
+    dem_percent = sum(DEM) / sum(TOTAL) * 100,
+    rep_percent = sum(REP) / sum(TOTAL) * 100,
+    unaff_percent = sum(UNAF) / sum(TOTAL) * 100
+  )
+
+summary2022 <- current_registrations2022 |>
+  summarize(
+    dem_percent = sum(DEM) / sum(TOTAL) * 100,
+    rep_percent = sum(REP) / sum(TOTAL) * 100,
+    unaff_percent = sum(UNAF) / sum(TOTAL) * 100
+  )
+
+new_reg2024 <- new_party_registrations2024 |>
+  summarize(
+    dem_percent = sum(DEM) / sum(TOTAL) * 100,
+    rep_percent = sum(REP) / sum(TOTAL) * 100,
+    unaff_percent = sum(UNAF) / sum(TOTAL) * 100
+  )
+
+new_reg2022 <- new_party_registrations2022 |>
+  summarize(
+    dem_percent = sum(DEM) / sum(TOTAL) * 100,
+    rep_percent = sum(REP) / sum(TOTAL) * 100,
+    unaff_percent = sum(UNAF) / sum(TOTAL) * 100
+  )
+
+glimpse(summary2024)
+glimpse(summary2022)
+glimpse(new_reg2024)
+glimpse(new_reg2022)
 ```
 
 Q4. Choose your own adventure! Using both the 2024 and 2022 data for one of the dataframes (changes, removals or new registrations), ask and answer a question that makes at least one comparison and requires code to answer. That could involve calculating a percentage, percentage change or the raw difference between two columns.
 
-A4.
+A4.What was the total number of removals for Republicans in 2022 and 2024? There were more removals for Republicans in 2022 than in 2024, with 7544 in 2022 and 6406 in 2024. 
 
 ```{r}
+total_rep_removed2024 <- sum(removals2024$REP, na.rm = TRUE)
+total_rep_removed2022 <- sum(removals2022$REP, na.rm = TRUE)
+
+print(total_rep_removed2022)
+print(total_rep_removed2024)
 
 ```
 
 Q5. What's the best story idea or question you've seen as a result of the work you've done in this lab?
 
 A5.
+The best story idea is why there was such a large increase in unaffiliated voters from 2022 to 2024, what caused this? 
