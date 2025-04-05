@@ -1,0 +1,90 @@
+---
+title: "Reverse Engineering Project "
+output: html_notebook
+---
+```{r}
+library(tidyverse)
+```
+
+```{r}
+congress_ages<- read_csv("data_aging_congress.csv")
+
+glimpse(congress_ages)
+```
+1: "Don’t expect such unfamiliarity to change anytime soon: As it turns out, Congress today is older than it’s ever been. Across all senators and representatives, the median age of the 118th Congress is 59 years old. The median senator is 65 years old, a record high; the median representative is about 58, for the fourth Congress in a row.1 Congress has notably aged since 2001: From 1919 to 1999, the median senator never eclipsed 60 years old and the median representative never surpassed 55." 
+```{r}
+congress_ages |>
+  summarize(median_age = median(age_years, na.rm=TRUE))
+```
+```{r}
+congress_ages |>
+  filter(chamber == "Senate") |>
+  summarize(median_senate_age= median(age_years, na.rm=TRUE))
+```
+```{r}
+congress_ages |>
+  filter(chamber == "House") |>
+  summarize(median_senate_age= median(age_years, na.rm=TRUE))
+```
+"Forty-eight percent of the current Congress is made up of boomers, even though they only represented about 21 percent of the population in the most recent census. And this actually represents a decline in representation for boomers, who made up 63 percent of Congress in the mid-2010s."
+
+```{r}
+current_boomers <- congress_ages |>
+  filter(congress=="118") |>
+  group_by(congress, generation) |>
+  summarize (
+    total = n(),
+    boomers = sum(generation == "Boomers"), 
+    .groups = "drop") |>
+  mutate(
+    total_all_generations = sum(total),
+    percent_boomers = ((boomers / total_all_generations) * 100)) |>
+print(current_boomers)
+```
+
+```{r}
+current_boomers <- congress_ages |>
+  filter(congress=="113") |>
+  group_by(congress, generation) |>
+  summarize (
+    total = n(),
+    boomers = sum(generation == "Boomers"), 
+    .groups = "drop") |>
+  mutate(
+    total_all_generations = sum(total),
+    percent_boomers = ((boomers / total_all_generations) * 100)) |>
+print(current_boomers)
+```
+“But on top of the baby boomers’ outsized congressional representation, they’re also older than their predecessors in the Lost, Greatest and Silent generations were when those groups held the most sway on Capitol Hill. When boomers became a plurality of Congress in 2001, their median age was nearly 49, six years older than the Silent Generation was when it became the largest generational cohort in 1979. And while the Silent Generation’s median age was 59 just before the boomers surpassed it in Congress, today the boomers’ median age is a whopping 66. It’s no wonder, then, that Congress is notably older today.”
+
+```{r}
+generation_ages <- congress_ages |>
+  filter(generation %in% c("Boomers", "Silent") & congress %in% c(96, 107, 118))
+
+age_by_generation <- generation_ages |>
+  group_by(generation, congress) |>
+  summarize(median_age = median(age_years, na.rm = TRUE), .groups = "drop")
+
+age_by_generation
+```
+
+"Coming up behind the boomers is Gen X, which makes up 36 percent of Congress, and beyond them are millennials (10 percent), who now constitute a larger segment of the overall population than boomers." 
+
+```{r}
+
+new_congress <- max(congress_ages$congress, na.rm=TRUE) 
+
+new_congress <- filter(congress_ages, congress==new_congress) 
+
+count_gen <- new_congress |>
+  group_by(generation) |>
+  summarize(count=n(), .groups="drop")
+
+total_congress <- sum(count_gen$count) 
+
+count_gen <- count_gen |> 
+  mutate(percent = round((count/total_congress) * 100, 1))
+
+print(count_gen)
+
+```
