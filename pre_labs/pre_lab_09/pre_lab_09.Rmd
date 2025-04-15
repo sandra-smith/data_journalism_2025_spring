@@ -116,6 +116,12 @@ In order to make a map, we need to be able to tell Datawrapper that a certain co
 
 # calculate the total number of votes and Moore's percentage, saving it back to the md_gov_county dataframe
 
+md_gov_county <- md_gov_county |>
+  mutate(
+    total_votes = Cox + Moore + Lashar + Wallace + Harding + `Write-ins`,
+    moore_pct = (Moore / total_votes) * 100
+  )
+
 write_csv(md_gov_county, "data/md_gov_county.csv")
 ```
 
@@ -159,7 +165,6 @@ Ok, that looks better. Let's publish!
 
 **Task** Click the "Proceed" button until you get to the "Publish & Embed" tab, then click "Publish Now". Copy the published URL (like you did for the chart above) and paste it below. **Answer** Put the URL of your map here.
 
-https://datawrapper.dwcdn.net/fIZBq/1/
-
+https://datawrapper.dwcdn.net/1ShTY/1/
 
 
