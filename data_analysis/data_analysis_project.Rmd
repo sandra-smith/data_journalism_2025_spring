@@ -154,25 +154,25 @@ votes_2024 <- precincts_combined |>
   summarize(total_votes_2024 = sum(total, na.rm=TRUE), .groups="drop")
 
 #Join 2020 and 2024 datasets by party and precinct 
-vote_changes <- left_join(votes_2020, votes_2024, by = c("election_district_precinct", "county_name", "party")) |>
-  mutate(
-    differences = total_votes_2024 - total_votes_2020
-  )
+vote_changes <- left_join(votes_2020, votes_2024, by = c("election_district_precinct", "county_name", "party"))
 
-#Seperate by party 
+#Democrat percent change 
 democratic_changes <- vote_changes |>
   filter(party == "DEM") |>
-  select(election_district_precinct, county_name, democratic_changes = differences)
+  mutate(
+    percent_change = ((total_votes_2024 - total_votes_2020) / total_votes_2020) * 100
+  ) |>
+  select(election_district_precinct, county_name, percent_change) |>
+  arrange(desc(percent_change))
 
+#Republican percent change 
 republican_changes <- vote_changes |>
   filter(party == "REP") |>
-  select(election_district_precinct, republican_changes = differences)
-
-#Join parties (asked ChatGPT for help with the full join)
-party_changes <- full_join(democratic_changes, republican_changes, by = "election_district_precinct") |>
-  arrange(desc(abs(democratic_changes) + abs(republican_changes)))
-
-party_changes
+  mutate(
+    percent_change = ((total_votes_2024 - total_votes_2020) / total_votes_2020) * 100 
+  ) |>
+  select(election_district_precinct, county_name, percent_change) |>
+  arrange(desc(percent_change))
 ```
 
 
