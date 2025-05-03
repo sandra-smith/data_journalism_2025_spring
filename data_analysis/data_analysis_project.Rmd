@@ -1,0 +1,290 @@
+---
+title: "Data Analysis Project"
+author: "Sandra Smith, Lauren Bentley, Katelynn Winebrenner"
+date: "May 13, 2025"
+output:
+  html_document:
+    theme: cerulean
+    highlight: pygments
+    toc: true
+    toc_float:
+      collapsed: true
+      smooth_scroll: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction, Preliminary Analysis and Definitions
+
+In this notebook, we are analyzing Maryland precinct data from the 2020 and 2024 elections. To do this, we have loaded in 2 data sets from the Maryland State Board of Elections. 
+
+The 2020 data set has 23 columns and 95283 rows. 
+The 2024 data set has 21 columns and 117875 rows. 
+Both data sets show each precinct, information about the precinct, each race, each candidate, the winner, how many votes each candidate received and method of vote. 
+
+Because each year has different candidates and different races, we should identify which races happened both years and in all counties in order to make a clear analysis. We should also identify clear candidates in each race so that we aren't analyzing someone who is listed, but received one write in vote, for example.
+
+To meet these parameters, we will focus on the race for president because it happened both years and in every precinct. In terms of candidates, we will focus on Donald Trump and Joe Biden for 2020 and Kamala Harris and Donald Trump for 2024.
+
+We should be able to answer most of our questions with this data. However, we will need to load in data from the census in order to answer questions about economic status and identify. I don't know how easy that will be to do by precinct, but we'll see. We'll also need to include information about eligible voters and registered voters to determine turnout.
+
+
+## Load libraries
+
+Loading required libraries for this analysis.
+
+```{r echo=FALSE, message=FALSE}
+options(scipen=999)
+library(tidyverse)
+library(lubridate)
+library(tidycensus)
+library(janitor)
+library(sf)
+```
+
+## Load and Clean Data
+```{r}
+# Load required data
+uncleaned_precincts2020 <- read_csv("data/All_By_Precinct_2020_General.csv")
+uncleaned_precincts2024 <- read_csv("data/PG24_AllPrecincts.csv")
+```
+
+```{r}
+# Clean 2020, column names to match, county names, combine column district and column precinct, select columns
+precincts2020 <- uncleaned_precincts2020 |>
+  clean_names() |>
+  mutate(county_name = case_when(
+    county == "01" ~ "Allegany County",
+    county == "02" ~ "Anne Arundel County",
+    county == "03" ~ "Baltimore City",
+    county == "04" ~ "Baltimore County",
+    county == "05" ~ "Calvert County",
+    county == "06" ~ "Caroline County",
+    county == "07" ~ "Carroll County",
+    county == "08" ~ "Cecil City",
+    county == "09" ~ "Charles County",
+    county == "10" ~ "Dorchester County",
+    county == "11" ~ "Frederick County",
+    county == "12" ~ "Garrett County",
+    county == "13" ~ "Harford County",
+    county == "14" ~ "Howard County",
+    county == "15" ~ "Kent County",
+    county == "16" ~ "Montgomery County",
+    county == "17" ~ "Prince George's County",
+    county == "18" ~ "Queen Anne's City",
+    county == "19" ~ "Saint Mary's County",
+    county == "20" ~ "Somerset County",
+    county == "21" ~ "Talbot County",
+    county == "22" ~ "Washington County",
+    county == "23" ~ "Wicomico County",
+    county == "24" ~ "Worcester County"
+  ))|>
+  mutate(election_district_precinct = str_c(election_district, election_precinct, sep = "-"),
+         year = 2020)|> #chatgpt, str_c function to combine two column outputs by - in single column
+  rename(
+    election_day = election_day_votes,
+    early= early_voting_votes,
+    mail_in_1= by_mail_votes,
+    mail_in_2 = by_mail_2_votes,
+    provisional= prov_votes,
+    total= total_votes,
+    candidate_name = candidate_name,
+    party = party
+         )|>
+      select(year,county, county_name, election_district_precinct, office_name, candidate_name, party, election_day, early, mail_in_1, mail_in_2, provisional, total)|>
+  filter(
+    office_name == "President - Vice Pres", 
+    candidate_name %in% c("Joe Biden", "Donald J. Trump")) #%n% from chatgpt
+
+
+# Clean 2024, column names to match, create total votes, select columns
+precincts2024 <- uncleaned_precincts2024|>
+  clean_names()|>
+   rename(
+     election_day = election_night_votes,
+     mail_in_1 = mail_in_ballot_1_votes,
+     mail_in_2 = mail_in_ballot_2_votes,
+     early = early_votes,
+     provisional= provisional_votes,
+     candidate_name = candidate_name,
+     party = party
+     )|>
+  mutate(
+    total = (election_day + mail_in_1 + mail_in_2 + early + provisional),
+    year = 2024
+  )|>
+  
+    select(year, county, county_name, election_district_precinct, office_name, candidate_name, party, election_day, early, mail_in_1, mail_in_2, provisional, total)|>
+ filter(
+    office_name == "President - Vice Pres",
+    candidate_name %in% c("Kamala D. Harris and Tim Walz", "Donald J. Trump and JD Vance") #%n% from chatgpt
+  )
+
+```
+
+```{r}
+# combine dataframes, not joining, but placing them on top of one another
+precincts_combined <- bind_rows(precincts2020, precincts2024)
+
+```
+
+
+## Questions to answer
+In this notebook, we are answering five questions about the data.
+
+### Question 1
+
+* **Question**: Which precincts experienced the most significant change in party support? 
+
+* **Analysis summary**: 
+
+```{r}
+#Summarize votes by party (2020)
+votes_2020 <- precincts_combined |>
+  filter(year == 2020) |>
+  group_by(election_district_precinct, county_name, party) |>
+  summarize(total_votes_2020 = sum(total,na.rm = TRUE), .groups= "drop")
+
+#Summarize votes by party (2024)
+votes_2024 <- precincts_combined |>
+  filter(year == 2024) |>
+  group_by(election_district_precinct, county_name, party) |>
+  summarize(total_votes_2024 = sum(total, na.rm=TRUE), .groups="drop")
+
+#Join 2020 and 2024 datasets by party and precinct 
+vote_changes <- left_join(votes_2020, votes_2024, by = c("election_district_precinct", "county_name", "party")) |>
+  mutate(
+    differences = total_votes_2024 - total_votes_2020
+  )
+
+#Seperate by party 
+democratic_changes <- vote_changes |>
+  filter(party == "DEM") |>
+  select(election_district_precinct, county_name, democratic_changes = differences)
+
+republican_changes <- vote_changes |>
+  filter(party == "REP") |>
+  select(election_district_precinct, republican_changes = differences)
+
+#Join parties (asked ChatGPT for help with the full join)
+party_changes <- full_join(democratic_changes, republican_changes, by = "election_district_precinct") |>
+  arrange(desc(abs(democratic_changes) + abs(republican_changes)))
+
+party_changes
+```
+
+
+
+
+
+
+### Question 2
+
+* **Question**: How did voter turnout vary across precincts? What factors contributed to this? 
+
+* **Analysis summary**: 
+
+```{r}
+
+```
+
+
+
+
+
+### Question 3
+
+* **Question**: How did early voting and mail-in ballots influence precinct-level results? 
+
+
+* **Analysis summary**: 
+
+```{r}
+
+```
+
+
+
+
+
+### Question 4
+
+* **Question**: How did voting behavior differ between precincts based on economic status? 
+
+* **Analysis summary**: 
+```{r}
+
+
+
+
+
+```
+
+
+
+
+
+### Question 5
+
+* **Question**: How did voting behavior differ between precincts based on race, gender and age group? 
+
+* **Analysis summary**: 
+```{r}
+# get census income data by tract
+md_income_data <- get_acs(
+  geography = "tract",
+  variables = "B19013_001",
+  state = "MD",
+  year = 2021,
+  geometry = TRUE
+)
+glimpse(md_income_data)
+
+```
+```{r}
+#read precinct shapefile 
+glimpse(md_income_data)
+
+uncleaned_precincts_shape <- st_read("data/Maryland_Election_Boundaries_-_Precincts_2022/Maryland_Election_Boundaries_-_Precincts_2022.shp")
+
+```
+```{r}
+precincts_shape <- uncleaned_precincts_shape |>
+  clean_names()|>
+   mutate(
+    name = str_extract(name, "\\d{1,2}-\\d{3}"),  # Extract the district-precinct code (e.g., "29-002")
+    district = str_extract(name, "^\\d{1,2}"),  # Extract the district number (e.g., "29", "5", "12")
+    precinct_code = str_pad(district, width = 3, side = "left", pad = "0"),  # Pad district with leading zeros
+    name = str_replace(name, "^\\d{1,2}", precinct_code)  # Replace original district with padded district
+  ) |>
+  select(name, geometry)|>  # Keep only the formatted precinct_column
+rename(election_district_precinct = name)
+
+```
+```{r}
+#join precinct spatial data to election data
+geometry_precincts_combined <- precincts_shape |>
+  left_join(precincts_combined, join_by(election_district_precinct)) 
+```
+
+```{r}
+#join last dataframe with maryland income dataframe
+#make same type
+md_income_shape <- st_transform(md_income_data, st_crs(geometry_precincts_combined))
+```
+```{r}
+#join precinct data to county spatial data
+
+joined_data <- st_join(precincts_shape, md_income_shape)|>
+ rename(median_income = estimate)
+```
+
+```{r}
+
+election_economic_analysis <- left_join(joined_data, precincts_combined, by = "election_district_precinct")
+```
+
+
+
