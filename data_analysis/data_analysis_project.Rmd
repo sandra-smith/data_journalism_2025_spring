@@ -187,6 +187,35 @@ republican_changes <- vote_changes |>
 * **Analysis summary**: 
 
 ```{r}
+#Total votes by precinct (2020 and 2024)
+voter_turnout_summary <- precincts_combined |>
+  group_by(year, election_district_precinct, county_name) |>
+  summarize(total_voter_turnout = sum(total,na.rm=TRUE), .groups="drop")
+
+#Seperate by year 
+voter_turnout_2020 <- voter_turnout_summary |>
+  filter(year == 2020) |>
+  select(election_district_precinct, county_name, total_turnout_2020 = total_voter_turnout)
+
+voter_turnout_2024 <- voter_turnout_summary |>
+  filter(year == 2024) |>
+  select(election_district_precinct, county_name, total_turnout_2024 = total_voter_turnout)
+
+#Join by precinct 
+voter_turnout_changes <- left_join(voter_turnout_2020,voter_turnout_2024, by = c("election_district_precinct", "county_name")) |>
+  mutate(change = total_turnout_2024 - total_turnout_2020, 
+         percent_change= (change/total_turnout_2020) * 100)
+
+#View largest increase and decrease 
+top_voter_increases <- voter_turnout_changes |>
+  arrange(desc(percent_change)) |>
+  slice_head(n=10)
+
+top_voter_decreases <- voter_turnout_changes |>
+  arrange(percent_change) |>
+  slice_head(n=10)
+  
+
 
 ```
 
