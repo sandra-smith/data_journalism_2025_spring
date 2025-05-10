@@ -231,6 +231,51 @@ top_voter_decreases <- voter_turnout_changes |>
 * **Analysis summary**: 
 
 ```{r}
+#summarize votes by method in 2020
+methods_2020 <- precincts_combined |>
+  filter(year == 2020) |>
+  group_by(
+    election_district_precinct, county_name, party, early, mail_in_1, mail_in_2, provisional, total
+  ) |>
+    summarize(
+      total_votes_20 = sum(total,na.rm = TRUE),
+      .groups = "drop"
+    ) |>
+  mutate(year=2020)
+  
+
+#summarize votes by method in 2024
+methods_2024 <- precincts_combined |>
+  group_by(
+    election_district_precinct, county_name, party, early, mail_in_1, mail_in_2, provisional, total
+  ) |>
+  summarize(
+    total_votes_24 = sum(total,na.rm = TRUE),
+    .groups = "drop"
+    ) |>
+  mutate(year=2024)
+
+methods_combined <- bind_rows (methods_2020, methods_2024)
+
+
+#calculate percentage difference
+methods_combined <- methods_combined |>
+  mutate(
+    early_percent = early/total,
+    mail_in_percent = (mail_in_1 + mail_in_2) / total,
+    provisional_percent = provisional / total
+  )
+
+methods_combined <- methods_combined |>
+  group_by(year, party) |>
+  summarise(
+    average_early = mean(early_percent, na.rm = TRUE),
+    average_mail = mean(mail_in_percent, na.rm = TRUE),
+    average_provisional = mean(provisional_percent, na.rm = TRUE),
+    .groups = "drop"
+  )
+  
+print(methods_combined)
 
 ```
 
@@ -245,7 +290,73 @@ top_voter_decreases <- voter_turnout_changes |>
 * **Analysis summary**: 
 ```{r}
 
+precincts_shape <- st_read("data/Maryland_Election_Boundaries_-_Precincts_2022/Maryland_Election_Boundaries_-_Precincts_2022.shp")|>
+  clean_names()|>
+   mutate(
+    name = str_extract(name, "\\d{1,2}-\\d{3}"),  # Extract the district-precinct code (e.g., "29-002")
+    district = str_extract(name, "^\\d{1,2}"),  # Extract the district number (e.g., "29", "5", "12")
+    precinct_code = str_pad(district, width = 3, side = "left", pad = "0"),  # Pad district with leading zeros
+    name = str_replace(name, "^\\d{1,2}", precinct_code)  # Replace original district with padded district
+  ) |>
+rename(election_district_precinct = name)
 
+
+#join precinct data to geo data
+
+geometry_precincts_2020 <- precincts_shape |>
+  left_join(precincts2020, join_by(election_district_precinct)) 
+
+geometry_precincts_2024 <- precincts_shape |>
+  left_join(precincts2024, join_by(election_district_precinct)) 
+
+#load census tracts, income data
+median_income_pop <- get_acs(
+  geography = "tract",
+  variables = "B19013_001",
+  state = "MD",
+  year = 2021,
+  geometry = TRUE,
+  ) |> 
+  clean_names()
+  
+  
+
+median_income_pop |>
+  as.data.frame()
+
+
+
+```
+
+```{r error=TRUE}
+geometry_precincts_2020 <- geometry_precincts_2020 |>
+  st_transform(crs=5070)
+
+geometry_precincts_2024 <- geometry_precincts_2024 |>
+  st_transform(crs=5070)
+
+median_income_pop <- median_income_pop|>
+  st_transform(crs=5070)
+
+
+# Perform a spatial join using st_within
+#spatial_join_2020 <- st_within(geometry_precincts_2020, median_income_pop, sparse = FALSE)
+
+#spatial_join_2024  <- st_within(geometry_precincts_2024, median_income_pop, sparse = FALSE)
+
+```
+
+```{r}
+MAP :()
+map <- mapview(geometry_precincts_2020, 
+               col.region = "blue", + # Set the color of the precincts
+       mapview(median_income_pop, 
+                     col.region = "red", # Set the color of the census tracts
+                     alpha.region = 0.8,
+                     cex = 2, # Set the transparency
+                     legend = TRUE) # Enable the legend
+
+view(map)
 
 
 
