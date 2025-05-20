@@ -138,7 +138,7 @@ In this notebook, we are answering five questions about the data.
 
 * **Question**: Which precincts experienced the most significant change in party support? 
 
-* **Analysis summary**: 
+* **Analysis summary**: To find out which precincts experienced the most significant change in party support, we filtered each dataset with 2020 and 2024 precincts to show only the precinct, county and party. Then, we joined the datasets together and calculated the democratic and republican percent changes for each. Through this analysis, we found that Baltimore County 009-029 had the largest republican percent change from 2020 to 2024 and Baltimore County 009-027 also had the largest democratic percent change from 2020 to 2024. Washington County and Harford County precincts also had large percent change in party support. Prince George's County 019-005 had the lowest democratic percent change and Washington County 013-002 had the lowest republican percent change. 
 
 ```{r}
 #Summarize votes by party (2020)
@@ -184,7 +184,7 @@ republican_changes <- vote_changes |>
 
 * **Question**: How did voter turnout vary across precincts? What factors contributed to this? 
 
-* **Analysis summary**: 
+* **Analysis summary**: To find how voter turnout varied across precincts from 2020 to 2024, we calculated the total number of votes by precinct for each year. We then seperated these datasets by year and joined them by precinct. We then calculated the percent changes for both increasing and decreasing votes. From this, we only looked at the top 10 precincts from each election district. We found that Prince George's County and Washington County had the largest decrease in voter turnout from 2020 to 2024. Prince George's County had small numbers within the dataset, with only 3 voters shown -- so this number is not reflective of the other precinct changes. Harford County had the largest increase in voter turnout, along with various precincts in Baltimore County. 
 
 ```{r}
 #Total votes by precinct (2020 and 2024)
